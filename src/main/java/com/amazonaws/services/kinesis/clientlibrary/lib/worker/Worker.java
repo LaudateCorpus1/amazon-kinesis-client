@@ -77,7 +77,7 @@ public class Worker implements Runnable {
     private final long idleTimeInMilliseconds;
     // Backoff time when polling to check if application has finished processing
     // parent shards
-    private final long parentShardPollIntervalMillis;    
+    private final long parentShardPollIntervalMillis;
     private final ExecutorService executorService;
     private final IMetricsFactory metricsFactory;
     // Backoff time when running tasks if they encounter exceptions
@@ -99,7 +99,8 @@ public class Worker implements Runnable {
     private ConcurrentMap<ShardInfo, ShardConsumer> shardInfoShardConsumerMap =
             new ConcurrentHashMap<ShardInfo, ShardConsumer>();
     private final boolean cleanupLeasesUponShardCompletion;
-    
+    private final boolean ignoreUnexpectedChildShards;
+
     private final boolean skipShardSyncAtWorkerInitializationIfLeasesExist;
 
     /**
@@ -230,6 +231,7 @@ public class Worker implements Runnable {
                 config.getParentShardPollIntervalMillis(),
                 config.getShardSyncIntervalMillis(),
                 config.shouldCleanupLeasesUponShardCompletion(),
+                config.shouldIgnoreUnexpectedChildShards(),
                 null,
                 new KinesisClientLibLeaseCoordinator(
                         new KinesisClientLeaseManager(config.getTableName(), dynamoDBClient),
@@ -286,6 +288,7 @@ public class Worker implements Runnable {
      * @param shardSyncIdleTimeMillis Time between tasks to sync leases and Kinesis shards
      * @param cleanupLeasesUponShardCompletion Clean up shards we've finished processing (don't wait till they expire in
      *        Kinesis)
+     * @param ignoreUnexpectedChildShards Ignore child shards with open parents
      * @param checkpoint Used to get/set checkpoints
      * @param leaseCoordinator Lease coordinator (coordinates currently owned leases)
      * @param execService ExecutorService to use for processing records (support for multi-threaded
@@ -303,6 +306,7 @@ public class Worker implements Runnable {
             long parentShardPollIntervalMillis,
             long shardSyncIdleTimeMillis,
             boolean cleanupLeasesUponShardCompletion,
+            boolean ignoreUnexpectedChildShards,
             ICheckpoint checkpoint,
             KinesisClientLibLeaseCoordinator leaseCoordinator,
             ExecutorService execService,
@@ -317,6 +321,7 @@ public class Worker implements Runnable {
         this.initialPosition = initialPositionInStream;
         this.parentShardPollIntervalMillis = parentShardPollIntervalMillis;
         this.cleanupLeasesUponShardCompletion = cleanupLeasesUponShardCompletion;
+        this.ignoreUnexpectedChildShards = ignoreUnexpectedChildShards;
         this.checkpointTracker = checkpoint != null ? checkpoint : leaseCoordinator;
         this.idleTimeInMilliseconds = streamConfig.getIdleTimeInMilliseconds();
         this.executorService = execService;
@@ -327,11 +332,12 @@ public class Worker implements Runnable {
                         leaseCoordinator.getLeaseManager(),
                         initialPositionInStream,
                         cleanupLeasesUponShardCompletion,
+                        ignoreUnexpectedChildShards,
                         shardSyncIdleTimeMillis,
                         metricsFactory,
                         executorService);
         this.taskBackoffTimeMillis = taskBackoffTimeMillis;
-        this.failoverTimeMillis = failoverTimeMillis;        
+        this.failoverTimeMillis = failoverTimeMillis;
         this.skipShardSyncAtWorkerInitializationIfLeasesExist = skipShardSyncAtWorkerInitializationIfLeasesExist;
         this.shardPrioritization = shardPrioritization;
     }
@@ -423,6 +429,7 @@ public class Worker implements Runnable {
                                     leaseCoordinator.getLeaseManager(),
                                     initialPosition,
                                     cleanupLeasesUponShardCompletion,
+                                    ignoreUnexpectedChildShards,
                                     0L);
                     result = new MetricsCollectingTaskDecorator(shardSyncTask, metricsFactory).call();
                 } else {
@@ -687,7 +694,8 @@ public class Worker implements Runnable {
 
         return new ShardConsumer(shardInfo, streamConfig, checkpointTracker, recordProcessor,
                 leaseCoordinator.getLeaseManager(), parentShardPollIntervalMillis, cleanupLeasesUponShardCompletion,
-                executorService, metricsFactory, taskBackoffTimeMillis, skipShardSyncAtWorkerInitializationIfLeasesExist);
+                ignoreUnexpectedChildShards, executorService, metricsFactory, taskBackoffTimeMillis,
+                skipShardSyncAtWorkerInitializationIfLeasesExist);
 
     }
 
@@ -1102,6 +1110,7 @@ public class Worker implements Runnable {
                     config.getParentShardPollIntervalMillis(),
                     config.getShardSyncIntervalMillis(),
                     config.shouldCleanupLeasesUponShardCompletion(),
+                    config.shouldIgnoreUnexpectedChildShards(),
                     null,
                     new KinesisClientLibLeaseCoordinator(new KinesisClientLeaseManager(config.getTableName(),
                             dynamoDBClient),

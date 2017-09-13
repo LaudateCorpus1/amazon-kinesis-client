@@ -79,6 +79,7 @@ public class ShardConsumerTest {
     private final long taskBackoffTimeMillis = 500L;
     private final long parentShardPollIntervalMillis = 50L;
     private final boolean cleanupLeasesOfCompletedShards = true;
+    private final boolean ignoreUnexpectedChildShards = false;
     // We don't want any of these tests to run checkpoint validation
     private final boolean skipCheckpointValidationValue = false;
     private static final InitialPositionInStreamExtended INITIAL_POSITION_LATEST =
@@ -125,6 +126,7 @@ public class ShardConsumerTest {
                         null,
                         parentShardPollIntervalMillis,
                         cleanupLeasesOfCompletedShards,
+                        ignoreUnexpectedChildShards,
                         executorService,
                         metricsFactory,
                         taskBackoffTimeMillis,
@@ -172,6 +174,7 @@ public class ShardConsumerTest {
                         null,
                         parentShardPollIntervalMillis,
                         cleanupLeasesOfCompletedShards,
+                        ignoreUnexpectedChildShards,
                         spyExecutorService,
                         metricsFactory,
                         taskBackoffTimeMillis,
@@ -213,6 +216,7 @@ public class ShardConsumerTest {
                         null,
                         parentShardPollIntervalMillis,
                         cleanupLeasesOfCompletedShards,
+                        ignoreUnexpectedChildShards,
                         executorService,
                         metricsFactory,
                         taskBackoffTimeMillis,
@@ -301,6 +305,7 @@ public class ShardConsumerTest {
                         leaseManager,
                         parentShardPollIntervalMillis,
                         cleanupLeasesOfCompletedShards,
+                        ignoreUnexpectedChildShards,
                         executorService,
                         metricsFactory,
                         taskBackoffTimeMillis,
@@ -404,6 +409,7 @@ public class ShardConsumerTest {
                         leaseManager,
                         parentShardPollIntervalMillis,
                         cleanupLeasesOfCompletedShards,
+                        ignoreUnexpectedChildShards,
                         executorService,
                         metricsFactory,
                         taskBackoffTimeMillis,

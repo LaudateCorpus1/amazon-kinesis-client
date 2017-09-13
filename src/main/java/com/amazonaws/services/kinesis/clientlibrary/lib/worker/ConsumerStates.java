@@ -498,7 +498,9 @@ class ConsumerStates {
                     consumer.getRecordProcessorCheckpointer(), consumer.getShutdownReason(),
                     consumer.getStreamConfig().getStreamProxy(),
                     consumer.getStreamConfig().getInitialPositionInStream(),
-                    consumer.isCleanupLeasesOfCompletedShards(), consumer.getLeaseManager(),
+                    consumer.isCleanupLeasesOfCompletedShards(),
+                    consumer.isIgnoreUnexpectedChildShards(),
+                    consumer.getLeaseManager(),
                     consumer.getTaskBackoffTimeMillis());
         }
 

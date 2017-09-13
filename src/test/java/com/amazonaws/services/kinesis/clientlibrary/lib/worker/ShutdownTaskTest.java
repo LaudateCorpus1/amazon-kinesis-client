@@ -90,6 +90,7 @@ public class ShutdownTaskTest {
         IKinesisProxy kinesisProxy = mock(IKinesisProxy.class);
         ILeaseManager<KinesisClientLease> leaseManager = mock(KinesisClientLeaseManager.class);
         boolean cleanupLeasesOfCompletedShards = false;
+        boolean ignoreUnexpectedChildShards = false;
         ShutdownTask task = new ShutdownTask(defaultShardInfo,
                 defaultRecordProcessor,
                 checkpointer,
@@ -97,6 +98,7 @@ public class ShutdownTaskTest {
                 kinesisProxy,
                 INITIAL_POSITION_TRIM_HORIZON,
                 cleanupLeasesOfCompletedShards,
+                ignoreUnexpectedChildShards,
                 leaseManager,
                 TASK_BACKOFF_TIME_MILLIS);
         TaskResult result = task.call();
@@ -115,6 +117,7 @@ public class ShutdownTaskTest {
         when(kinesisProxy.getShardList()).thenReturn(null);
         ILeaseManager<KinesisClientLease> leaseManager = mock(KinesisClientLeaseManager.class);
         boolean cleanupLeasesOfCompletedShards = false;
+        boolean ignoreUnexpectedChildShards = false;
         ShutdownTask task = new ShutdownTask(defaultShardInfo,
                 defaultRecordProcessor,
                 checkpointer,
@@ -122,6 +125,7 @@ public class ShutdownTaskTest {
                 kinesisProxy,
                 INITIAL_POSITION_TRIM_HORIZON,
                 cleanupLeasesOfCompletedShards,
+                ignoreUnexpectedChildShards,
                 leaseManager,
                 TASK_BACKOFF_TIME_MILLIS);
         TaskResult result = task.call();
@@ -134,7 +138,7 @@ public class ShutdownTaskTest {
      */
     @Test
     public final void testGetTaskType() {
-        ShutdownTask task = new ShutdownTask(null, null, null, null, null, null, false, null, 0);
+        ShutdownTask task = new ShutdownTask(null, null, null, null, null, null, false, false, null, 0);
         Assert.assertEquals(TaskType.SHUTDOWN, task.getTaskType());
     }
 

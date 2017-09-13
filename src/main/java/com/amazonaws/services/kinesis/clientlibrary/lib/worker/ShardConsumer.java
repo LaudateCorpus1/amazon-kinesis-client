@@ -51,6 +51,7 @@ class ShardConsumer {
     // Backoff time when polling to check if application has finished processing parent shards
     private final long parentShardPollIntervalMillis;
     private final boolean cleanupLeasesOfCompletedShards;
+    private final boolean ignoreUnexpectedChildShards;
     private final long taskBackoffTimeMillis;
     private final boolean skipShardSyncAtWorkerInitializationIfLeasesExist;
 
@@ -81,7 +82,7 @@ class ShardConsumer {
      * @param metricsFactory IMetricsFactory used to construct IMetricsScopes for this shard
      * @param backoffTimeMillis backoff interval when we encounter exceptions
      */
-    // CHECKSTYLE:IGNORE ParameterNumber FOR NEXT 10 LINES
+    // CHECKSTYLE:IGNORE ParameterNumber FOR NEXT 11 LINES
     ShardConsumer(ShardInfo shardInfo,
             StreamConfig streamConfig,
             ICheckpoint checkpoint,
@@ -89,6 +90,7 @@ class ShardConsumer {
             ILeaseManager<KinesisClientLease> leaseManager,
             long parentShardPollIntervalMillis,
             boolean cleanupLeasesOfCompletedShards,
+            boolean ignoreUnexpectedChildShards,
             ExecutorService executorService,
             IMetricsFactory metricsFactory,
             long backoffTimeMillis,
@@ -109,6 +111,7 @@ class ShardConsumer {
         this.metricsFactory = metricsFactory;
         this.parentShardPollIntervalMillis = parentShardPollIntervalMillis;
         this.cleanupLeasesOfCompletedShards = cleanupLeasesOfCompletedShards;
+        this.ignoreUnexpectedChildShards = ignoreUnexpectedChildShards;
         this.taskBackoffTimeMillis = backoffTimeMillis;
         this.skipShardSyncAtWorkerInitializationIfLeasesExist = skipShardSyncAtWorkerInitializationIfLeasesExist;
     }
@@ -351,6 +354,10 @@ class ShardConsumer {
 
     boolean isCleanupLeasesOfCompletedShards() {
         return cleanupLeasesOfCompletedShards;
+    }
+
+    boolean isIgnoreUnexpectedChildShards() {
+        return ignoreUnexpectedChildShards;
     }
 
     long getTaskBackoffTimeMillis() {

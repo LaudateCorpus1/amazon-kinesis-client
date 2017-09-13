@@ -81,6 +81,11 @@ public class KinesisClientLibConfiguration {
     public static final boolean DEFAULT_CLEANUP_LEASES_UPON_SHARDS_COMPLETION = true;
 
     /**
+     * Ignore child shards with open parents.
+     */
+    public static final boolean DEFAULT_IGNORE_UNEXPECTED_CHILD_SHARDS = false;
+
+    /**
      * Backoff time in milliseconds for Amazon Kinesis Client Library tasks (in the event of failures).
      */
     public static final long DEFAULT_TASK_BACKOFF_TIME_MILLIS = 500L;
@@ -184,6 +189,7 @@ public class KinesisClientLibConfiguration {
     private boolean callProcessRecordsEvenForEmptyRecordList;
     private long parentShardPollIntervalMillis;
     private boolean cleanupLeasesUponShardCompletion;
+    private boolean ignoreUnexpectedChildShards;
     private ClientConfiguration kinesisClientConfig;
     private ClientConfiguration dynamoDBClientConfig;
     private ClientConfiguration cloudWatchClientConfig;
@@ -243,6 +249,7 @@ public class KinesisClientLibConfiguration {
                 DEFAULT_MAX_RECORDS, DEFAULT_IDLETIME_BETWEEN_READS_MILLIS,
                 DEFAULT_DONT_CALL_PROCESS_RECORDS_FOR_EMPTY_RECORD_LIST, DEFAULT_PARENT_SHARD_POLL_INTERVAL_MILLIS,
                 DEFAULT_SHARD_SYNC_INTERVAL_MILLIS, DEFAULT_CLEANUP_LEASES_UPON_SHARDS_COMPLETION,
+                DEFAULT_IGNORE_UNEXPECTED_CHILD_SHARDS,
                 new ClientConfiguration(), new ClientConfiguration(), new ClientConfiguration(),
                 DEFAULT_TASK_BACKOFF_TIME_MILLIS, DEFAULT_METRICS_BUFFER_TIME_MILLIS, DEFAULT_METRICS_MAX_QUEUE_SIZE,
                 DEFAULT_VALIDATE_SEQUENCE_NUMBER_BEFORE_CHECKPOINTING, null);
@@ -270,6 +277,7 @@ public class KinesisClientLibConfiguration {
      * @param shardSyncIntervalMillis Time between tasks to sync leases and Kinesis shards
      * @param cleanupTerminatedShardsBeforeExpiry Clean up shards we've finished processing (don't wait for expiration
      *        in Kinesis)
+     * @param ignoreUnexpectedChildShards Ignore child shards with open parents
      * @param kinesisClientConfig Client Configuration used by Kinesis client
      * @param dynamoDBClientConfig Client Configuration used by DynamoDB client
      * @param cloudWatchClientConfig Client Configuration used by CloudWatch client
@@ -298,6 +306,7 @@ public class KinesisClientLibConfiguration {
             long parentShardPollIntervalMillis,
             long shardSyncIntervalMillis,
             boolean cleanupTerminatedShardsBeforeExpiry,
+            boolean ignoreUnexpectedChildShards,
             ClientConfiguration kinesisClientConfig,
             ClientConfiguration dynamoDBClientConfig,
             ClientConfiguration cloudWatchClientConfig,
@@ -310,7 +319,7 @@ public class KinesisClientLibConfiguration {
                 dynamoDBCredentialsProvider, cloudWatchCredentialsProvider, failoverTimeMillis, workerId,
                 maxRecords, idleTimeBetweenReadsInMillis,
                 callProcessRecordsEvenForEmptyRecordList, parentShardPollIntervalMillis,
-                shardSyncIntervalMillis, cleanupTerminatedShardsBeforeExpiry,
+                shardSyncIntervalMillis, cleanupTerminatedShardsBeforeExpiry, ignoreUnexpectedChildShards,
                 kinesisClientConfig, dynamoDBClientConfig, cloudWatchClientConfig,
                 taskBackoffTimeMillis, metricsBufferTimeMillis, metricsMaxQueueSize,
                 validateSequenceNumberBeforeCheckpointing, regionName);
@@ -339,6 +348,7 @@ public class KinesisClientLibConfiguration {
      * @param shardSyncIntervalMillis Time between tasks to sync leases and Kinesis shards
      * @param cleanupTerminatedShardsBeforeExpiry Clean up shards we've finished processing (don't wait for expiration
      *        in Kinesis)
+     * @param ignoreUnexpectedChildShards Ignore child shards with open parents
      * @param kinesisClientConfig Client Configuration used by Kinesis client
      * @param dynamoDBClientConfig Client Configuration used by DynamoDB client
      * @param cloudWatchClientConfig Client Configuration used by CloudWatch client
@@ -368,6 +378,7 @@ public class KinesisClientLibConfiguration {
             long parentShardPollIntervalMillis,
             long shardSyncIntervalMillis,
             boolean cleanupTerminatedShardsBeforeExpiry,
+            boolean ignoreUnexpectedChildShards,
             ClientConfiguration kinesisClientConfig,
             ClientConfiguration dynamoDBClientConfig,
             ClientConfiguration cloudWatchClientConfig,
@@ -402,6 +413,7 @@ public class KinesisClientLibConfiguration {
         this.parentShardPollIntervalMillis = parentShardPollIntervalMillis;
         this.shardSyncIntervalMillis = shardSyncIntervalMillis;
         this.cleanupLeasesUponShardCompletion = cleanupTerminatedShardsBeforeExpiry;
+        this.ignoreUnexpectedChildShards = ignoreUnexpectedChildShards;
         this.workerIdentifier = workerId;
         this.kinesisClientConfig = checkAndAppendKinesisClientLibUserAgent(kinesisClientConfig);
         this.dynamoDBClientConfig = checkAndAppendKinesisClientLibUserAgent(dynamoDBClientConfig);
@@ -636,6 +648,13 @@ public class KinesisClientLibConfiguration {
     }
 
     /**
+     * @return true if we should ignore child shards which have open parents
+     */
+    public boolean shouldIgnoreUnexpectedChildShards() {
+        return ignoreUnexpectedChildShards;
+    }
+
+    /**
      * @return true if KCL should validate client provided sequence numbers with a call to Amazon Kinesis before
      *         checkpointing for calls to {@link RecordProcessorCheckpointer#checkpoint(String)}
      */
@@ -828,6 +847,16 @@ public class KinesisClientLibConfiguration {
     public KinesisClientLibConfiguration withCleanupLeasesUponShardCompletion(
             boolean cleanupLeasesUponShardCompletion) {
         this.cleanupLeasesUponShardCompletion = cleanupLeasesUponShardCompletion;
+        return this;
+    }
+
+    /**
+     * @param ignoreUnexpectedChildShards Ignore child shards with open parents.
+     * @return KinesisClientLibConfiguration
+     */
+    public KinesisClientLibConfiguration withIgnoreUnexpectedChildShards(
+            boolean ignoreUnexpectedChildShards) {
+        this.ignoreUnexpectedChildShards = ignoreUnexpectedChildShards;
         return this;
     }
 
